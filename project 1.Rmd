@@ -1,0 +1,114 @@
+---
+title: "CANDY Project"
+subtitle: "SDS 192 - Data camp project"
+author: "Miagoto Benedicte"
+date: "`r format(Sys.Date(), '%B %e, %Y')`"
+output: 
+  html_document:
+    toc: true
+    toc_depth: 2
+    toc_float: true
+    fig_width: 7
+    fig_height: 6
+    fig_caption: true
+    theme: lumen
+    df_print: paged
+    code_folding: show
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE)
+library(tidyverse)
+library(sds192)
+library(broom)
+library(corrplot)
+library(fivethirtyeight)
+```
+
+## Section 1
+
+```{r}
+#glimpse(candy_rankings)
+candy_rankings_long <- candy_rankings %>%
+gather("feature", "value", chocolate: pluribus)
+
+ggplot(candy_rankings_long, aes( x = value)) + geom_bar() + facet_wrap(~feature)
+  
+
+
+```
+
+## Section 2
+```{r}
+c# Make a lollipop chart of pricepercent
+ggplot(candy_rankings, aes(reorder(competitorname, pricepercent), pricepercent)) +
+  geom_segment(aes(xend = reorder(competitorname, pricepercent), yend = 0)) +
+  geom_point() +
+  coord_flip()
+
+
+```
+
+## Section 3 
+```{r}
+ggplot(candy_rankings, aes( x = winpercent)) + geom_histogram() + theme_linedraw()
+```
+
+## Section 4
+```{r}
+ggplot(candy_rankings, aes(reorder(competitorname, winpercent), winpercent)) +
+  geom_segment(aes(xend = reorder(competitorname, winpercent), yend = 0)) +
+  geom_point() +
+  coord_flip()
+
+```
+
+## Section 5
+
+```{r}
+candy_rankings %>%
+select(chocolate, fruity, caramel, peanutyalmondy, nougat, crispedricewafer, hard, bar, pluribus, sugarpercent, pricepercent, winpercent) %>%
+  cor() %>%
+  corrplot ()
+  
+```
+
+## Section 6
+```{r}
+win_mod <- lm(winpercent ~ . -competitorname, data = candy_rankings)
+summary(win_mod)
+
+ggplot(augment(win_mod), aes(.fitted, .resid)) + 
+  geom_point() + 
+  geom_hline(yintercept = 0)
+
+choc_mod <- glm(chocolate ~ . -competitorname, family = "binomial", data = candy_rankings)
+summary(choc_mod)
+
+ preds <- augment(choc_mod, type.predict = "response")%>%
+mutate(prediction = .fitted >0.5) 
+ conf_mat <- preds %>%
+select(chocolate, prediction) %>%
+table()
+accuracy <- sum(diag(conf_mat))/sum(conf_mat)
+accuracy
+```
+
+
+
+## Word count
+
+```{r word_count, message=FALSE, echo=FALSE}
+text_stats()
+```
+
+## Standards
+
+In this assignment, we are attempting the following standards:
+
+```{r buttons, echo=FALSE}
+standard_button("markdown")
+standard_button("aesthetics")
+```
+
+
